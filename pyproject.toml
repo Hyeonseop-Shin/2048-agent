@@ -1,0 +1,9 @@
+[project]
+name = "2048-agent"
+version = "0.1.0"
+description = "2048 game environment with web UI for AI agent training"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.23.0",
+]
