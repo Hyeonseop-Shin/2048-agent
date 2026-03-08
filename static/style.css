@@ -62,12 +62,13 @@ h1 {
 
 /* Controls */
 .controls {
-    margin-bottom: 16px;
+    margin-bottom: 8px;
     display: flex;
     justify-content: flex-end;
+    gap: 8px;
 }
 
-#new-game-btn {
+.controls button {
     background: #8f7a66;
     color: #f9f6f2;
     border: none;
@@ -79,8 +80,54 @@ h1 {
     transition: background 0.15s;
 }
 
-#new-game-btn:hover {
+.controls button:hover {
     background: #9f8b77;
+}
+
+#ai-play-btn {
+    background: #4a90d9;
+}
+
+#ai-play-btn:hover {
+    background: #5a9fe8;
+}
+
+#ai-stop-btn {
+    background: #d94a4a;
+}
+
+#ai-stop-btn:hover {
+    background: #e85a5a;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* AI Controls */
+.ai-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #776e65;
+}
+
+.ai-controls label {
+    font-weight: 600;
+}
+
+#speed-slider {
+    width: 120px;
+    accent-color: #4a90d9;
+}
+
+.ai-direction {
+    font-weight: 700;
+    font-size: 14px;
+    color: #4a90d9;
+    min-width: 24px;
 }
 
 /* Board */

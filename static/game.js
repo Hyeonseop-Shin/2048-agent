@@ -2,7 +2,7 @@
  * 2048 Game Frontend
  *
  * Communicates with the FastAPI backend via REST API.
- * Supports keyboard (arrow keys) and touch/swipe input.
+ * Supports keyboard, touch/swipe, and AI auto-play.
  */
 
 const API = {
@@ -18,6 +18,10 @@ const API = {
         });
         return res.json();
     },
+    async agentMove() {
+        const res = await fetch('/api/agent/move', { method: 'POST' });
+        return res.json();
+    },
     async getState() {
         const res = await fetch('/api/state');
         return res.json();
@@ -26,6 +30,8 @@ const API = {
 
 // Direction constants (must match server)
 const DIR = { UP: 0, RIGHT: 1, DOWN: 2, LEFT: 3 };
+const DIR_ARROWS = { 0: '\u2191', 1: '\u2192', 2: '\u2193', 3: '\u2190' };
+const DIR_NAMES = { 0: 'UP', 1: 'RIGHT', 2: 'DOWN', 3: 'LEFT' };
 
 // DOM elements
 const boardEl = document.getElementById('board');
@@ -34,10 +40,17 @@ const bestEl = document.getElementById('best');
 const overlayEl = document.getElementById('game-overlay');
 const newGameBtn = document.getElementById('new-game-btn');
 const retryBtn = document.getElementById('retry-btn');
+const aiPlayBtn = document.getElementById('ai-play-btn');
+const aiStopBtn = document.getElementById('ai-stop-btn');
+const speedSlider = document.getElementById('speed-slider');
+const speedLabel = document.getElementById('speed-label');
+const aiDirectionEl = document.getElementById('ai-direction');
 
 let currentBoard = null;
 let bestScore = parseInt(localStorage.getItem('best2048') || '0', 10);
 let isAnimating = false;
+let aiPlaying = false;
+let aiTimer = null;
 
 bestEl.textContent = bestScore;
 
@@ -65,7 +78,6 @@ function renderBoard(board, previousBoard) {
 }
 
 function updateScore(score) {
-    const prev = parseInt(scoreEl.textContent, 10);
     scoreEl.textContent = score;
 
     if (score > bestScore) {
@@ -86,11 +98,13 @@ function hideGameOver() {
 // ---- Game Actions ----
 
 async function startNewGame() {
+    stopAI();
     hideGameOver();
     const state = await API.newGame();
     currentBoard = state.board;
     renderBoard(state.board, null);
     updateScore(state.score);
+    aiDirectionEl.textContent = '';
 }
 
 async function makeMove(direction) {
@@ -118,9 +132,70 @@ async function makeMove(direction) {
     }
 }
 
+// ---- AI Auto-Play ----
+
+async function aiStep() {
+    if (!aiPlaying) return;
+
+    try {
+        const previousBoard = currentBoard;
+        const state = await API.agentMove();
+
+        if (state.direction >= 0) {
+            aiDirectionEl.textContent = DIR_ARROWS[state.direction] || '';
+        }
+
+        if (!state.moved) {
+            stopAI();
+            if (state.game_over) {
+                setTimeout(showGameOver, 300);
+            }
+            return;
+        }
+
+        currentBoard = state.board;
+        renderBoard(state.board, previousBoard);
+        updateScore(state.score);
+
+        if (state.game_over) {
+            stopAI();
+            setTimeout(showGameOver, 300);
+            return;
+        }
+
+        // Schedule next step
+        const delay = parseInt(speedSlider.value, 10);
+        aiTimer = setTimeout(aiStep, delay);
+    } catch (err) {
+        console.error('AI step error:', err);
+        stopAI();
+    }
+}
+
+function startAI() {
+    if (aiPlaying) return;
+    aiPlaying = true;
+    aiPlayBtn.classList.add('hidden');
+    aiStopBtn.classList.remove('hidden');
+    aiStep();
+}
+
+function stopAI() {
+    aiPlaying = false;
+    if (aiTimer) {
+        clearTimeout(aiTimer);
+        aiTimer = null;
+    }
+    aiPlayBtn.classList.remove('hidden');
+    aiStopBtn.classList.add('hidden');
+    aiDirectionEl.textContent = '';
+}
+
 // ---- Keyboard Input ----
 
 document.addEventListener('keydown', (e) => {
+    if (aiPlaying) return; // disable manual input during AI play
+
     const keyMap = {
         ArrowUp: DIR.UP,
         ArrowRight: DIR.RIGHT,
@@ -145,6 +220,8 @@ boardEl.addEventListener('touchstart', (e) => {
 }, { passive: true });
 
 boardEl.addEventListener('touchend', (e) => {
+    if (aiPlaying) return;
+
     const dx = e.changedTouches[0].clientX - touchStartX;
     const dy = e.changedTouches[0].clientY - touchStartY;
     const absDx = Math.abs(dx);
@@ -164,6 +241,12 @@ boardEl.addEventListener('touchend', (e) => {
 
 newGameBtn.addEventListener('click', startNewGame);
 retryBtn.addEventListener('click', startNewGame);
+aiPlayBtn.addEventListener('click', startAI);
+aiStopBtn.addEventListener('click', stopAI);
+
+speedSlider.addEventListener('input', () => {
+    speedLabel.textContent = speedSlider.value + 'ms';
+});
 
 // ---- Init ----
 

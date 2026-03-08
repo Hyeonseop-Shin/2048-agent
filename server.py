@@ -20,6 +20,7 @@ from game.core import (
     is_game_over,
     BOARD_SIZE,
 )
+from agent.ai import find_best_move
 
 app = FastAPI(title="2048 Game")
 
@@ -76,6 +77,36 @@ def api_state():
     if session_id not in games:
         return api_new_game()
     return games[session_id].to_dict()
+
+
+@app.post("/api/agent/move")
+def api_agent_move():
+    """Let the AI agent choose and execute the best move."""
+    session_id = "default"
+    if session_id not in games:
+        state = new_game()
+        games[session_id] = state
+        rngs[session_id] = random.Random()
+
+    state = games[session_id]
+    rng = rngs[session_id]
+
+    direction = find_best_move(state.board)
+    if direction < 0:
+        result = state.to_dict()
+        result["moved"] = False
+        result["direction"] = -1
+        result["reward"] = 0
+        return result
+
+    new_state, reward, done = step(state, Direction(direction), rng)
+    games[session_id] = new_state
+
+    result = new_state.to_dict()
+    result["reward"] = reward
+    result["moved"] = new_state.board != state.board
+    result["direction"] = direction
+    return result
 
 
 # Serve static files

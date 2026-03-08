@@ -24,6 +24,15 @@
 
         <div class="controls">
             <button id="new-game-btn">New Game</button>
+            <button id="ai-play-btn">AI Play</button>
+            <button id="ai-stop-btn" class="hidden">Stop</button>
+        </div>
+
+        <div class="ai-controls" id="ai-controls">
+            <label for="speed-slider">Speed:</label>
+            <input type="range" id="speed-slider" min="5" max="1000" value="200" step="5">
+            <span id="speed-label">200ms</span>
+            <span id="ai-direction" class="ai-direction"></span>
         </div>
 
         <div class="board-container">
