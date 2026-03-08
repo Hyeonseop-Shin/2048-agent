@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>2048</h1>
+            <div class="score-container">
+                <div class="score-box">
+                    <div class="score-label">SCORE</div>
+                    <div class="score-value" id="score">0</div>
+                </div>
+                <div class="score-box">
+                    <div class="score-label">BEST</div>
+                    <div class="score-value" id="best">0</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="controls">
+            <button id="new-game-btn">New Game</button>
+        </div>
+
+        <div class="board-container">
+            <div class="board" id="board">
+                <!-- Cells rendered by JS -->
+            </div>
+            <div class="game-overlay" id="game-overlay">
+                <div class="overlay-message">
+                    <p>Game Over!</p>
+                    <button id="retry-btn">Try Again</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <p>Use <strong>arrow keys</strong> or <strong>swipe</strong> to move tiles.</p>
+            <p>Merge tiles with the same number to reach <strong>2048</strong>!</p>
+        </div>
+    </div>
+
+    <script src="/static/game.js"></script>
+</body>
+</html>
